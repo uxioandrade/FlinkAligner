@@ -23,6 +23,7 @@ target/
 *.ipr
 *.iws
 .idea
+idea.sbt
 
 # mac
 .DS_Store
