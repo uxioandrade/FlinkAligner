@@ -5,7 +5,7 @@ ThisBuild / resolvers ++= Seq(
 
 javacOptions ++= Seq("-source", "11", "-target", "11")
 
-name := "FlinkBWA"
+name := "FlinkAligner"
 
 version := "0.1-SNAPSHOT"
 
