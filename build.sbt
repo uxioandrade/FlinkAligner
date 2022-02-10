@@ -14,7 +14,7 @@ organization := "org.uxioandrade"
 ThisBuild / scalaVersion := "2.12.11"
 
 val flinkVersion = "1.14.3"
-
+val log4jVersion = "2.17.1"
 val flinkDependencies = Seq(
   "org.apache.flink" %% "flink-scala" % flinkVersion % "provided",
   "org.apache.flink" %% "flink-clients" % flinkVersion % "provided",
@@ -22,9 +22,15 @@ val flinkDependencies = Seq(
   "org.apache.flink" %% "flink-runtime-web" % flinkVersion % "provided",
   )
 
+val slf4jDependencis = Seq(
+  "org.apache.logging.log4j" % "log4j-core" % log4jVersion,
+  "org.apache.logging.log4j" % "log4j-api" % log4jVersion,
+  "org.apache.logging.log4j" % "log4j-slf4j-impl" % log4jVersion,
+)
+
 lazy val root = (project in file(".")).
   settings(
-    libraryDependencies ++= flinkDependencies
+    libraryDependencies ++= flinkDependencies ++ slf4jDependencis
   )
 
 assembly / mainClass := Some("org.uxioandrade.Job")
