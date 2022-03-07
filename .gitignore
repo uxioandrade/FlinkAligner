@@ -43,3 +43,4 @@ mainRunner/
 *.dylib
 native/target/
 native/src/target/
+out/
