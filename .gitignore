@@ -38,5 +38,8 @@ mainRunner/
 *.fq.gz
 
 # native
+*.a
 *.so
 *.dylib
+native/target/
+native/src/target/
