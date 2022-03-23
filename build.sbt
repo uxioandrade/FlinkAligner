@@ -26,6 +26,7 @@ val flinkDependencies = Seq(
   "org.apache.flink" %% "flink-streaming-scala" % flinkVersion % "provided",
   "org.apache.flink" %% "flink-runtime-web" % flinkVersion % "provided",
   "org.apache.flink" % "flink-java" % flinkVersion % "provided",
+  "org.apache.flink" % "flink-core" % flinkVersion % "provided",
   )
 
 val slf4jDependencies = Seq(
@@ -46,7 +47,7 @@ val sbtJniDependencies = Seq(
 lazy val root = (project in file(".")).aggregate(native)
   .settings(
     libraryDependencies ++= flinkDependencies ++ slf4jDependencies ++ bioDependencies
-  ).enablePlugins(JniNative)
+  )
   .dependsOn(native % Runtime)
 lazy val native = (project in file("native"))
   .settings(nativeCompile / sourceDirectory := sourceDirectory.value)
