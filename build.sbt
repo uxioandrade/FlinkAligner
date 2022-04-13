@@ -37,16 +37,21 @@ val slf4jDependencies = Seq(
 
 val bioDependencies = Seq (
 //  "it.crs4" % "rapi" % "0.1.0" from "file:///Users/uxio/tfginfo/flinkaligner/lib/jrapi.jar",
-  "com.github.samtools" % "htsjdk" % "2.24.1"
+  "com.github.samtools" % "htsjdk" % "2.24.1",
+  "com.google.jimfs" % "jimfs" % "1.2"
 )
 
+val testDependencies = Seq(
+  "org.scalatest" %% "scalatest" % "3.2.11" % "test",
+  "org.scalactic" %% "scalactic" % "3.2.11"
+)
 val sbtJniDependencies = Seq(
   "com.github.sbt" % "sbt-jni-core_2.12" % "1.5.3"
 )
 
 lazy val root = (project in file(".")).aggregate(native)
   .settings(
-    libraryDependencies ++= flinkDependencies ++ slf4jDependencies ++ bioDependencies
+    libraryDependencies ++= flinkDependencies ++ slf4jDependencies ++ testDependencies ++ bioDependencies
   )
   .dependsOn(native % Runtime)
 lazy val native = (project in file("native"))
