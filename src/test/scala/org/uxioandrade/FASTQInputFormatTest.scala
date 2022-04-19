@@ -40,6 +40,12 @@ class FASTQInputFormatTest extends AnyFlatSpec{
     .getClassLoader
     .getResource("sequence.fq.gz")
     .getPath
+
+  val emptyFile = getClass
+    .getClassLoader
+    .getResource("empty.fq.gz")
+    .getPath
+
   behavior of "Fastq Input Format"
 
   it should "read fastq string into a sequence stream" in {
@@ -62,5 +68,12 @@ class FASTQInputFormatTest extends AnyFlatSpec{
     val fastqDs = env.readFile(new FastqInputFormat(malformattedFile, keyMaxValue), malformattedFile, FileProcessingMode.PROCESS_ONCE,500)
     val fastqList: java.util.List[Sequence] = fastqDs.executeAndCollect(sequences.size)
     assert(fastqList == sequences.asJava)
+  }
+
+  it should "read an empty fq file into an empty datastream" in {
+    val keyMaxValue = 2
+    val fastqDs = env.readFile(new FastqInputFormat(emptyFile, keyMaxValue), emptyFile, FileProcessingMode.PROCESS_ONCE, 500)
+    val fastqList = fastqDs.executeAndCollect(2)
+    assert(fastqList.isEmpty)
   }
 }
