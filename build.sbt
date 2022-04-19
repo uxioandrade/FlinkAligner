@@ -43,7 +43,8 @@ val bioDependencies = Seq (
 
 val testDependencies = Seq(
   "org.scalatest" %% "scalatest" % "3.2.11" % "test",
-  "org.scalactic" %% "scalactic" % "3.2.11"
+  "org.scalactic" %% "scalactic" % "3.2.11",
+  "org.scalamock" %% "scalamock" % "5.2.0" % Test
 )
 val sbtJniDependencies = Seq(
   "com.github.sbt" % "sbt-jni-core_2.12" % "1.5.3"
