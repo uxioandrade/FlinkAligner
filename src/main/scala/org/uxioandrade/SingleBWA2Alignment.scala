@@ -39,7 +39,7 @@ class SingleBWA2Alignment(fastqFileName: String) extends RichFlatMapFunction[Seq
       case null => 0
       case x => x.value()
     }
-    fqFile = "out/" + fastqFileName + key + "-" + countValue + ".fq"
+    fqFile = fastqFileName + key + "-" + countValue + ".fq"
     println("Writing " + fqFile)
     fastqFile = new File(fqFile)
     fos = new FileOutputStream(fastqFile)

@@ -24,7 +24,7 @@ class PairedBWA2Alignment(fastqFileName: String) extends KeyedProcessFunction[In
       case null => 0
       case x => x.value()
     }
-    fqFile.update("out/" + fastqFileName + key + "-" + countValue)
+    fqFile.update(fastqFileName + key + "-" + countValue)
     currCount.update(currCount.value() + 1)
   }
 

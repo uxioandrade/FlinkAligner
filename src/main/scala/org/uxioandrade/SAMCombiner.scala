@@ -12,7 +12,6 @@ class SAMCombiner(outputSamFileName: String) extends RichFlatMapFunction[String,
     val outputSamFile = new File(outputSamFileName)
     val fos = new FileOutputStream(outputSamFile,true)
     val bw = new BufferedWriter(new OutputStreamWriter(fos))
-    println(outputSamFileName)
     val samFileStream = new BufferedInputStream(new FileInputStream(samFileName))
     val br      = new BufferedReader(new InputStreamReader(samFileStream))
     br.lines().forEach(line => {

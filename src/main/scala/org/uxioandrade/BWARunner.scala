@@ -28,7 +28,7 @@ object BWARunner extends App{
 //  val samFileName = "out/mini_seq.sam"
 //  ds.flatMap(new SAMCombiner(samFileName)).print()
 //  env.execute()
-    new BWA(env).getKeyedSingleReads(PATH)
+//    new BWA(env).runSingleAlignment(PATH,)
   env.execute("Single Align")
 //  Thread.sleep(10000)
 }

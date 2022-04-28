@@ -14,7 +14,8 @@ class AsyncBWAFunc extends AsyncFunction[String, String]{
 
   def runBWAProcess(samFile: String, input: String): Int = {
     val pb = new ProcessBuilder("./out/bwa-mem2",
-      "mem", "-t", "1", "-o", samFile, "./out/sample.fasta", input)
+      "mem", "-t", "1", "-o", samFile, "./out/mini_ref.fasta", input)
+    println("length" + " running")
     pb.inheritIO()
     pb.redirectErrorStream(true)
     val process = pb.start()
@@ -23,9 +24,6 @@ class AsyncBWAFunc extends AsyncFunction[String, String]{
 
   override def asyncInvoke(input: String, resultFuture: ResultFuture[String]): Unit = {
     val samFile = input + ".sam"
-//    val bwaFuture: Future[Int] = Future {
-//      Bwa2.run(Array("./out/bwa-mem2", "mem", "-f", samFile, "-t", "1", "./out/mini_ref.fasta", input))
-//    }
       val bwaFuture: Future[Int] = Future {
         runBWAProcess(samFile, input)
       }

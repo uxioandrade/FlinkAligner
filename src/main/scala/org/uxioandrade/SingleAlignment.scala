@@ -26,7 +26,7 @@ class SingleAlignment(fastqFileName: String) extends KeyedProcessFunction[Int, S
       case null => 0
       case x => x.value()
     }
-    fqFile.update("out/" + fastqFileName + key + "-" + countValue + ".fq")
+    fqFile.update(fastqFileName + key + "-" + countValue + ".fq")
     currCount.update(currCount.value() + 1)
   }
 

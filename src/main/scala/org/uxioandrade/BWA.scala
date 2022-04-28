@@ -24,7 +24,7 @@ class BWA(env: StreamExecutionEnvironment) {
         }
     })
 
-  def getKeyedPairedReads(path1: String, path2: String) = {
+  def runPairedAlignment(path1: String, path2: String, outputFilename: String) = {
     val fq1DS = env
       .readFile(new FastqInputFormat(path1), path1, FileProcessingMode.PROCESS_ONCE, 500)
     val fq2DS = env
@@ -37,36 +37,27 @@ class BWA(env: StreamExecutionEnvironment) {
       .apply(new PairedReadsJoinFunction)
     fqDS
       .keyBy(new PairedSequenceKeySelector)
-      .process(new PairedBWA2Alignment("mini_seq.fastq"))
+      .process(new PairedBWA2Alignment(path1))
   }
 
 
-  def getKeyedSingleReads(path: String) = {
+  def runSingleAlignment(path: String, outputFilename: String) = {
     val samDs = env
      .readFile(new FastqInputFormat(path), path, FileProcessingMode.PROCESS_ONCE,500)
      .setParallelism(8)
      .assignTimestampsAndWatermarks(ws)
       .keyBy(new SequenceKeySelector)
-      .process(new SingleAlignment("sample.fastq"))
-//     samDs.print()
-//    samDs.print()
-    //     .setParallelism(4)
-//     .rebalance()
-//    val f =
-//      samDs
-//        .flatMap(new SingleBWA2Alignment("mini_seq.fastq"))
-//    f.print()
-//    samDs.print()
+      .process(new SingleAlignment(path))
     val finalDs = AsyncDataStream.orderedWait(samDs, new AsyncBWAFunc, 200, TimeUnit.SECONDS)
-//    finalDs.print()
-//    finalDs.forceNonParallel()
-//    finalDs.print()
-//    val jobClient = env.execute("Single alignment")
-//    println(jobClient)
-    val samFileName = "out/sample2.sam"
-    finalDs.flatMap(new SAMCombiner(samFileName))
-//    Await.ready(f, CDuration.apply(30000,"s"))
-//    f.onComplete(x => x.get.print())
+    finalDs.flatMap(new SAMCombiner(outputFilename))
+  }
+
+  def runAlignment(isPaired: Boolean, inputFile1: String, inputFile2: Option[String], outputFile: String) = {
+    if(isPaired){
+      runPairedAlignment(inputFile1, inputFile2.get, outputFile)
+    } else {
+      runSingleAlignment(inputFile1, outputFile)
+    }
   }
 
 }
