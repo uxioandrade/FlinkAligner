@@ -6,7 +6,7 @@ import org.apache.flink.core.execution.{JobClient, JobListener}
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
 
 import java.io.{BufferedWriter, File, FileOutputStream, OutputStreamWriter}
-
+/*
 object BWARunner extends App{
 
   val PATH = "src/main/resources/sample.fastq.gz"
@@ -32,3 +32,4 @@ object BWARunner extends App{
   env.execute("Single Align")
 //  Thread.sleep(10000)
 }
+*/

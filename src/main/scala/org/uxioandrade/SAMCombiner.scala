@@ -14,6 +14,7 @@ class SAMCombiner(outputSamFileName: String) extends RichFlatMapFunction[String,
     val bw = new BufferedWriter(new OutputStreamWriter(fos))
     val samFileStream = new BufferedInputStream(new FileInputStream(samFileName))
     val br      = new BufferedReader(new InputStreamReader(samFileStream))
+
     br.lines().forEach(line => {
       if (line.startsWith("@")){
         out.collect(line)

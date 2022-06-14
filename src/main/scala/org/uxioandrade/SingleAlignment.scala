@@ -14,9 +14,11 @@ class SingleAlignment(fastqFileName: String) extends KeyedProcessFunction[Int, S
   private var fqFile: ValueState[String] = _
   private var currSequences: ListState[Sequence] = _
   private var currCount: ValueState[Int] = _
+  private var prevTimestamp: ValueState[Long] = _
 
   override def open(parameters: Configuration): Unit = {
     currCount = getRuntimeContext.getState(new ValueStateDescriptor[Int]("file-count", classOf[Int]))
+    prevTimestamp = getRuntimeContext.getState(new ValueStateDescriptor[Long]("prev-timestamp", classOf[Long]))
     currSequences = getRuntimeContext.getListState(new ListStateDescriptor[Sequence]("sequences", classOf[Sequence]))
     fqFile = getRuntimeContext.getState(new ValueStateDescriptor[String]("file-name", classOf[String]))
   }
@@ -38,8 +40,14 @@ class SingleAlignment(fastqFileName: String) extends KeyedProcessFunction[Int, S
       currCount.update(0)
       updateFile(ctx.getCurrentKey)
     }
+    val prevTimestampValue = prevTimestamp match {
+      case null => 0
+      case x => x.value()
+    }
     currSequences.add(value)
-    val timeout = 100000
+    val timeout = 100L
+    if(prevTimestampValue + timeout > ctx.timestamp()) return
+    prevTimestamp.update(ctx.timestamp())
     val coalescedTime = ((ctx.timestamp + timeout) / 1000) * 1000
     ctx.timerService.registerEventTimeTimer(coalescedTime)
   }
@@ -47,6 +55,7 @@ class SingleAlignment(fastqFileName: String) extends KeyedProcessFunction[Int, S
                         timestamp: Long,
                         ctx: KeyedProcessFunction[Int, Sequence, String]#OnTimerContext,
                         out: Collector[String]): Unit = {
+    println("timer")
     if (!currSequences.get.iterator().hasNext) return
     println("Writing " + fqFile.value)
     val fastqFile = new File(fqFile.value)

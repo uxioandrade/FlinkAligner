@@ -9,17 +9,19 @@ import java.util.zip.GZIPInputStream
 
 class FastqInputFormat(path: String, keyMaxValue: Int = 2) extends FileInputFormat[Sequence]{
 
-  var br: BufferedReader = _
-  var end = false
-  var keyCount = 0
+  private var br: BufferedReader = _
+  private var end = false
+  private var keyCount = 0
 
-  private def isMalformatted(id: Option[String], opt: Option[String], seq: Option[String], quality: Option[String]): Boolean = {
+  def isMalformatted(id: Option[String], opt: Option[String], seq: Option[String], quality: Option[String]): Boolean = {
     id.isEmpty || opt.isEmpty || quality.isEmpty || quality.isEmpty ||
     !id.get.startsWith("@") || opt.get != "+" || !seq.get.matches("[ACTG]+")
   }
   override def open(fileSplit: FileInputSplit): Unit = {
-    val gzip = new GZIPInputStream(new BufferedInputStream(new FileInputStream(path)))
-    br = new BufferedReader(new InputStreamReader(gzip))
+    val inputStream =
+      if(path.endsWith(".gz")) new GZIPInputStream(new BufferedInputStream(new FileInputStream(path)))
+      else new BufferedInputStream(new FileInputStream(path))
+    br = new BufferedReader(new InputStreamReader(inputStream))
   }
 
   override def nextRecord(reuse: Sequence): Sequence = {

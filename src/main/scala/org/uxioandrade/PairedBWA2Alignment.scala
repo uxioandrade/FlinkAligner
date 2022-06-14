@@ -12,11 +12,13 @@ class PairedBWA2Alignment(fastqFileName: String) extends KeyedProcessFunction[In
   private var fqFile: ValueState[String] = _
   private var currSequences: ListState[PairedSequence] = _
   private var currCount: ValueState[Int] = _
+  private var prevTimestamp: ValueState[Long] = _
 
   override def open(parameters: Configuration): Unit = {
     currCount = getRuntimeContext.getState(new ValueStateDescriptor[Int]("file-count", classOf[Int]))
     currSequences = getRuntimeContext.getListState(new ListStateDescriptor[PairedSequence]("sequences", classOf[PairedSequence]))
     fqFile = getRuntimeContext.getState(new ValueStateDescriptor[String]("file-name", classOf[String]))
+    prevTimestamp = getRuntimeContext.getState(new ValueStateDescriptor[Long]("prev-timestamp", classOf[Long]))
   }
 
   def updateFile(key: Int): Unit = {
@@ -36,10 +38,16 @@ class PairedBWA2Alignment(fastqFileName: String) extends KeyedProcessFunction[In
       currCount.update(0)
       updateFile(ctx.getCurrentKey)
     }
+    val prevTimestampValue = prevTimestamp match {
+      case null => 0
+      case x => x.value()
+    }
     currSequences.add(value)
-    val timeout = 100000
+    val timeout = 10000L
+    if(prevTimestampValue + timeout > ctx.timestamp()) return
+    prevTimestamp.update(ctx.timestamp())
     val coalescedTime = ((ctx.timestamp + timeout) / 1000) * 1000
-    ctx.timerService.registerEventTimeTimer(coalescedTime)
+    ctx.timerService.registerProcessingTimeTimer(coalescedTime)
   }
 
   private def getFqFileBufferedWriter(fqFileName: String): BufferedWriter={
@@ -52,7 +60,9 @@ class PairedBWA2Alignment(fastqFileName: String) extends KeyedProcessFunction[In
                         timestamp: Long,
                         ctx: KeyedProcessFunction[Int, PairedSequence, (String, String)]#OnTimerContext,
                         out: Collector[(String, String)]): Unit = {
+    println("No timer")
     if (!currSequences.get.iterator().hasNext) return
+    println("Timer go")
 
     val fq1FileName = fqFile.value + "_1.fq"
     val fq2FileName = fqFile.value + "_2.fq"

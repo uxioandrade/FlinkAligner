@@ -11,11 +11,21 @@ class AsyncPairedBWAFunc extends AsyncFunction[(String, String), String]{
 
   implicit lazy val executor: ExecutionContext = ExecutionContext.fromExecutor(Executors.directExecutor())
 
+  def runBWAProcess(samFile: String, input: (String, String)): Int = {
+    val pb = new ProcessBuilder("./out/bwa-mem2",
+              "mem", "-t", "8", "-o", samFile, "./out/Homo_sapiens.GRCh37.cdna.all.fa", input._1, input._2)
+    pb.inheritIO()
+    pb.redirectErrorStream(true)
+    val process = pb.start()
+    process.waitFor
+  }
+
   override def asyncInvoke(input: (String, String), resultFuture: ResultFuture[String]): Unit = {
-    val samFile = input._1 + ".sam"
-    val bwaFuture: Future[Int] = Future {
-      Bwa2.run(Array("./out/bwa-mem2", "mem", "-f", samFile, "-t", "1", "./out/mini_ref.fasta", input._1, input._2))
-    }
+     val samFile = input._1 + ".sam"
+     val bwaFuture: Future[Int] = Future {
+      runBWAProcess(samFile, input)
+     }
+
     bwaFuture.onSuccess {
       case result =>
         val r = "Bwa finished with result " + result
@@ -31,7 +41,6 @@ class AsyncPairedBWAFunc extends AsyncFunction[(String, String), String]{
         } catch {
           case exception: Exception => exception.printStackTrace()
         }
-        println(r)
         resultFuture.complete(List(samFile).asJava)
     }
   }
