@@ -37,8 +37,7 @@ val slf4jDependencies = Seq(
 
 val bioDependencies = Seq (
 //  "it.crs4" % "rapi" % "0.1.0" from "file:///Users/uxio/tfginfo/flinkaligner/lib/jrapi.jar",
-  "com.github.samtools" % "htsjdk" % "2.24.1",
-  "com.google.jimfs" % "jimfs" % "1.2"
+  "com.github.samtools" % "htsjdk" % "2.24.1"
 )
 
 val testDependencies = Seq(
