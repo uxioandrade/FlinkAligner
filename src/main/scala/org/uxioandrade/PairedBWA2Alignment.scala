@@ -60,9 +60,7 @@ class PairedBWA2Alignment(fastqFileName: String) extends KeyedProcessFunction[In
                         timestamp: Long,
                         ctx: KeyedProcessFunction[Int, PairedSequence, (String, String)]#OnTimerContext,
                         out: Collector[(String, String)]): Unit = {
-    println("No timer")
     if (!currSequences.get.iterator().hasNext) return
-    println("Timer go")
 
     val fq1FileName = fqFile.value + "_1.fq"
     val fq2FileName = fqFile.value + "_2.fq"

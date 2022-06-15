@@ -55,7 +55,6 @@ class SingleAlignment(fastqFileName: String) extends KeyedProcessFunction[Int, S
                         timestamp: Long,
                         ctx: KeyedProcessFunction[Int, Sequence, String]#OnTimerContext,
                         out: Collector[String]): Unit = {
-    println("timer")
     if (!currSequences.get.iterator().hasNext) return
     println("Writing " + fqFile.value)
     val fastqFile = new File(fqFile.value)
