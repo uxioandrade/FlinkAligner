@@ -1,12 +1,9 @@
 package org.uxioandrade
 
 import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
-import org.apache.flink.streaming.api.datastream.DataStream
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
-import org.apache.flink.streaming.api.functions.source.FileProcessingMode
 import org.apache.flink.streaming.api.datastream.AsyncDataStream
-import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction
-import org.apache.flink.streaming.api.windowing.assigners.{TumblingEventTimeWindows, TumblingProcessingTimeWindows}
+import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
 
 import java.time.{Duration, Instant}
@@ -36,51 +33,41 @@ class BWA(env: StreamExecutionEnvironment) {
         }
     })
 
-  def runPairedAlignment(fastaFile: String, path1: String, path2: String, outputFilename: String) = {
+  def runPairedAlignment(version: String, fastaFile: String, path1: String, path2: String, outputFilename: String, parallelism: Int, windowTime: Int) = {
     val fq1DS = env.addSource(new FastqSourceFunction(path1, 4))
-      .setParallelism(4)
       .assignTimestampsAndWatermarks(ws)
     val fq2DS = env.addSource(new FastqSourceFunction(path2, 4))
-      .setParallelism(4)
       .assignTimestampsAndWatermarks(ws)
     val fqDS = fq1DS
       .join(fq2DS)
       .where(el1 => el1.identifier.substring(0, el1.identifier.length-2))
       .equalTo(el2 => el2.identifier.substring(0, el2.identifier.length-2))
-      .window(TumblingProcessingTimeWindows.of(Time.seconds(10)))
+      .window(TumblingProcessingTimeWindows.of(Time.seconds(windowTime)))
       .apply(new PairedReadsJoinFunction)
       .assignTimestampsAndWatermarks(pairedWs)
       .keyBy(new PairedSequenceKeySelector)
       .process(new PairedBWA2Alignment(path1))
 
-    val finalDs = AsyncDataStream.orderedWait(fqDS, new AsyncPairedBWAFunc, 200, TimeUnit.SECONDS)
+    val finalDs = AsyncDataStream.orderedWait(fqDS, new AsyncPairedBWAFunc(version, parallelism, fastaFile), 200, TimeUnit.SECONDS)
     val output = finalDs.flatMap(new SAMCombiner(outputFilename))
   }
 
 
-  def runSingleAlignment(fastaFile: String, path: String, outputFilename: String) = {
+  def runSingleAlignment(version: String, fastaFile: String, path: String, outputFilename: String, parallelism: Int) = {
     val samDs = env.addSource(new FastqSourceFunction(path, 8))
-      .setParallelism(8)
       .assignTimestampsAndWatermarks(ws)
       .keyBy(new SequenceKeySelector)
       .process(new SingleAlignment(path))
 
-//    val samDs = env
-//     .readFile(new FastqInputFormat(path, 8), path, FileProcessingMode.PROCESS_ONCE,500).setParallelism(8)
-//     .assignTimestampsAndWatermarks(ws)
-//     .keyBy(new SequenceKeySelector)
-//     .process(new SingleAlignment(path))
-    val finalDs = AsyncDataStream.orderedWait(samDs, new AsyncBWAFunc(fastaFile), 200, TimeUnit.SECONDS)
+    val finalDs = AsyncDataStream.orderedWait(samDs, new AsyncBWAFunc(version, parallelism, fastaFile), 200, TimeUnit.SECONDS)
     val output = finalDs.flatMap(new SAMCombiner(outputFilename))
-//    output.print()
-    env.execute()
   }
 
-  def runAlignment(fastaFile: String, isPaired: Boolean, inputFile1: String, inputFile2: Option[String], outputFile: String) = {
+  def runAlignment(version: String, fastaFile: String, isPaired: Boolean, inputFile1: String, inputFile2: Option[String], outputFile: String, parallelism : Int, windowTime: Int) = {
     if(isPaired){
-      runPairedAlignment(fastaFile, inputFile1, inputFile2.get, outputFile)
+      runPairedAlignment(version, fastaFile, inputFile1, inputFile2.get, outputFile, parallelism, windowTime)
     } else {
-      runSingleAlignment(fastaFile, inputFile1, outputFile)
+      runSingleAlignment(version, fastaFile, inputFile1, outputFile, parallelism)
     }
   }
 
