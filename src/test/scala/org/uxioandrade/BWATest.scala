@@ -50,6 +50,10 @@ class BWATest extends AnyFlatSpec with MockFactory with BeforeAndAfter{
     .getResource("empty.fq")
     .getPath
 
+  val fastaFile = "./out/mini_ref.fasta"
+  val version = "./out/bwa-mem2"
+  val parallelism = 1
+
   def samFile = outputSamFile + ".tmp"
 
   after {
@@ -74,7 +78,7 @@ class BWATest extends AnyFlatSpec with MockFactory with BeforeAndAfter{
   behavior of "RunBwaProcess"
   it should "Run the BWA process and produce a SAM file" in {
     val inputSamFile = inputFile + ".sam"
-    new AsyncBWAFunc().runBWAProcess(inputSamFile, inputFile)
+    new AsyncBWAFunc(version, parallelism, fastaFile).runBWAProcess(inputSamFile, inputFile)
     Common.compareSams(inputSamFile, sequenceSamFile)
   }
 
@@ -82,14 +86,14 @@ class BWATest extends AnyFlatSpec with MockFactory with BeforeAndAfter{
     val inputSamFile = inputFile + ".sam"
     val mockFuture = mock[ResultFuture[String]]
     (mockFuture.complete _).expects(List(inputSamFile).asJava).once()
-    new AsyncBWAFunc().asyncInvoke(inputFile, mockFuture)
+    new AsyncBWAFunc(version, parallelism, fastaFile).asyncInvoke(inputFile, mockFuture)
     Common.compareSams(inputSamFile, sequenceSamFile)
   }
 
   behavior of "Empty FQ File"
 
   it should "Return an empty sam file" in {
-    new AsyncBWAFunc().runBWAProcess(samFile, emptyFq)
+    new AsyncBWAFunc(version, parallelism, fastaFile)runBWAProcess(samFile, emptyFq)
     Common.checkSamEmpty(samFile)
   }
 
@@ -97,7 +101,7 @@ class BWATest extends AnyFlatSpec with MockFactory with BeforeAndAfter{
     val emptyFqSamFile = emptyFq + ".sam"
     val mockFuture = mock[ResultFuture[String]]
     (mockFuture.complete _).expects(List(emptyFqSamFile).asJava).once()
-    new AsyncBWAFunc().asyncInvoke(emptyFq, mockFuture)
+    new AsyncBWAFunc(version, parallelism, fastaFile).asyncInvoke(emptyFq, mockFuture)
     Common.checkSamEmpty(emptyFqSamFile)
   }
 }
