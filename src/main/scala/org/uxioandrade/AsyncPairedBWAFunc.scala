@@ -7,13 +7,13 @@ import java.io.File
 import scala.collection.JavaConverters.seqAsJavaListConverter
 import scala.concurrent.{ExecutionContext, Future}
 
-class AsyncPairedBWAFunc extends AsyncFunction[(String, String), String]{
+class AsyncPairedBWAFunc(version: String, parallelism: Int, index: String) extends AsyncFunction[(String, String), String]{
 
   implicit lazy val executor: ExecutionContext = ExecutionContext.fromExecutor(Executors.directExecutor())
 
   def runBWAProcess(samFile: String, input: (String, String)): Int = {
-    val pb = new ProcessBuilder("./out/bwa-mem2",
-              "mem", "-t", "8", "-o", samFile, "./out/Homo_sapiens.GRCh37.cdna.all.fa", input._1, input._2)
+    val pb = new ProcessBuilder(version,
+              "mem", "-t", parallelism.toString, "-o", samFile, index, input._1, input._2)
     pb.inheritIO()
     pb.redirectErrorStream(true)
     val process = pb.start()

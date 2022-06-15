@@ -4,17 +4,16 @@ import org.apache.flink.streaming.api.functions.async.{AsyncFunction, ResultFutu
 import org.apache.flink.util.concurrent.Executors
 
 import java.io.File
-import java.lang.ProcessBuilder.Redirect
 import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.JavaConverters._
 
-class AsyncBWAFunc(fastaFile: String) extends AsyncFunction[String, String]{
+class AsyncBWAFunc(version: String, parallelism: Int, fastaFile: String) extends AsyncFunction[String, String]{
 
   implicit lazy val executor: ExecutionContext = ExecutionContext.fromExecutor(Executors.directExecutor())
 
   def runBWAProcess(samFile: String, input: String): Int = {
-    val pb = new ProcessBuilder("./out/bwa-mem2",
-      "mem", "-t", "1", "-o", samFile, fastaFile, input)
+    val pb = new ProcessBuilder(version,
+      "mem", "-t", parallelism.toString, "-o", samFile, fastaFile, input)
     pb.inheritIO()
     pb.redirectErrorStream(true)
     val process = pb.start()
@@ -22,7 +21,6 @@ class AsyncBWAFunc(fastaFile: String) extends AsyncFunction[String, String]{
   }
 
   override def asyncInvoke(input: String, resultFuture: ResultFuture[String]): Unit = {
-    println("Async")
     val samFile = input + ".sam"
       val bwaFuture: Future[Int] = Future {
         runBWAProcess(samFile, input)
